@@ -9,8 +9,8 @@ import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import java.util.List;
 
-import static edu.aks.catalog.model.CatalogProblem.Kind.CONFLICT;
-import static edu.aks.catalog.model.CatalogProblem.Kind.MISSING;
+import static edu.aks.catalog.model.CatalogProblemKind.CONFLICT;
+import static edu.aks.catalog.model.CatalogProblemKind.MISSING;
 
 @Stateless
 public class CatalogService {
@@ -20,53 +20,47 @@ public class CatalogService {
     @Inject
     private CatalogValidator validator;
 
-    public List<Course> courses() { return repository.courses(); }
-    public List<Lesson> lessons() { return repository.lessons(); }
+    public List<Course> listCourses() { return repository.listCourses(); }
+    public List<Lesson> listLessons() { return repository.listLessons(); }
 
     public void addCourse(String title, String description) {
-        repository.add(new Course(validator.courseTitle(title), validator.courseDescription(description)));
+        repository.insertCourse(new Course(validator.validateCourseTitle(title), validator.validateCourseDescription(description)));
     }
 
     public void updateCourse(long id, String title, String description) {
-        requireCourse(id).revise(validator.courseTitle(title), validator.courseDescription(description));
+        lockCourseOrThrow(id).revise(validator.validateCourseTitle(title), validator.validateCourseDescription(description));
     }
 
     public void deleteCourse(long id) {
-        Course course = requireCourse(id);
-        if (repository.hasLessons(id)) {
+        Course course = lockCourseOrThrow(id);
+        if (repository.existsLessonForCourse(id)) {
             throw new CatalogProblem(CONFLICT, "Сначала перенесите или удалите занятия этого курса.");
         }
-        repository.remove(course);
+        repository.deleteCourse(course);
     }
 
     public void addLesson(LessonSchedule input) {
-        LessonSchedule schedule = validator.lessonSchedule(input);
-        repository.add(new Lesson(requireCourse(schedule.getCourseId()), schedule));
+        LessonSchedule schedule = validator.validateLessonSchedule(input);
+        repository.insertLesson(new Lesson(lockCourseOrThrow(schedule.courseId()), schedule));
     }
 
     public void updateLesson(long id, LessonSchedule input) {
-        LessonSchedule schedule = validator.lessonSchedule(input);
-        Course course = requireCourse(schedule.getCourseId());
-        requireLesson(id).reschedule(course, schedule);
+        LessonSchedule schedule = validator.validateLessonSchedule(input);
+        Course course = lockCourseOrThrow(schedule.courseId());
+        lockLessonOrThrow(id).reschedule(course, schedule);
     }
 
     public void deleteLesson(long id) {
-        repository.remove(requireLesson(id));
+        repository.deleteLesson(lockLessonOrThrow(id));
     }
 
-    private Course requireCourse(long id) {
-        Course course = repository.lockCourse(id);
-        if (course == null) {
-            throw new CatalogProblem(MISSING, "Курс не найден.");
-        }
-        return course;
+    private Course lockCourseOrThrow(long id) {
+        return repository.findCourseForUpdate(id)
+                .orElseThrow(() -> new CatalogProblem(MISSING, "Курс не найден."));
     }
 
-    private Lesson requireLesson(long id) {
-        Lesson lesson = repository.lockLesson(id);
-        if (lesson == null) {
-            throw new CatalogProblem(MISSING, "Занятие не найдено.");
-        }
-        return lesson;
+    private Lesson lockLessonOrThrow(long id) {
+        return repository.findLessonForUpdate(id)
+                .orElseThrow(() -> new CatalogProblem(MISSING, "Занятие не найдено."));
     }
 }

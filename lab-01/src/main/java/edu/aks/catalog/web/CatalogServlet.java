@@ -1,6 +1,7 @@
 package edu.aks.catalog.web;
 
 import edu.aks.catalog.model.CatalogProblem;
+import edu.aks.catalog.model.CatalogProblemKind;
 import edu.aks.catalog.model.LessonSchedule;
 import edu.aks.catalog.service.CatalogService;
 import java.util.UUID;
@@ -34,7 +35,7 @@ public class CatalogServlet extends HttpServlet {
                 case "lesson-create" -> catalog.addLesson(schedule(req));
                 case "lesson-update" -> catalog.updateLesson(id(req, "id"), schedule(req));
                 case "lesson-delete" -> catalog.deleteLesson(id(req, "id"));
-                default -> throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Неизвестное действие.");
+                default -> throw new CatalogProblem(CatalogProblemKind.INVALID, "Неизвестное действие.");
             }
             res.setStatus(HttpServletResponse.SC_SEE_OTHER);
             res.setHeader("Location", req.getContextPath() + "/");
@@ -56,7 +57,7 @@ public class CatalogServlet extends HttpServlet {
         } catch (NumberFormatException ignored) {
             // Report absent and malformed identifiers uniformly.
         }
-        throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Некорректный идентификатор.");
+        throw new CatalogProblem(CatalogProblemKind.INVALID, "Некорректный идентификатор.");
     }
 
     private static LessonSchedule schedule(HttpServletRequest req) {
@@ -67,7 +68,7 @@ public class CatalogServlet extends HttpServlet {
         try {
             return Integer.parseInt(req.getParameter("minutes"));
         } catch (NumberFormatException e) {
-            throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Укажите длительность целым числом.");
+            throw new CatalogProblem(CatalogProblemKind.INVALID, "Укажите длительность целым числом.");
         }
     }
 
@@ -79,8 +80,8 @@ public class CatalogServlet extends HttpServlet {
             session.setAttribute("token", UUID.randomUUID().toString());
         }
         res.setHeader("Cache-Control", "no-store");
-        req.setAttribute("courses", catalog.courses());
-        req.setAttribute("lessons", catalog.lessons());
+        req.setAttribute("courses", catalog.listCourses());
+        req.setAttribute("lessons", catalog.listLessons());
         req.getRequestDispatcher("/WEB-INF/catalog.jsp").forward(req, res);
     }
 }

@@ -29,8 +29,8 @@ public class Lesson {
     }
 
     public void reschedule(Course course, LessonSchedule schedule) {
-        this.topic = schedule.getTopic();
-        this.minutes = schedule.getMinutes();
+        this.topic = schedule.topic();
+        this.minutes = schedule.minutes();
         this.course = course;
     }
 }

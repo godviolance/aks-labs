@@ -1,10 +1,3 @@
 package edu.aks.catalog.model;
 
-import lombok.Value;
-
-@Value
-public class LessonSchedule {
-    long courseId;
-    String topic;
-    int minutes;
-}
+public record LessonSchedule(long courseId, String topic, int minutes) {}

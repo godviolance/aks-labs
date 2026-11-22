@@ -5,12 +5,10 @@ import lombok.Getter;
 
 @ApplicationException(rollback = true)
 public class CatalogProblem extends RuntimeException {
-    public enum Kind { INVALID, MISSING, CONFLICT }
-
     @Getter
-    private final Kind kind;
+    private final CatalogProblemKind kind;
 
-    public CatalogProblem(Kind kind, String message) {
+    public CatalogProblem(CatalogProblemKind kind, String message) {
         super(message);
         this.kind = kind;
     }
