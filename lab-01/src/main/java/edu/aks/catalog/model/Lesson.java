@@ -1,7 +1,12 @@
 package edu.aks.catalog.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "lesson")
 public class Lesson {
@@ -19,27 +24,13 @@ public class Lesson {
     @Column(nullable = false)
     private int minutes;
 
-    protected Lesson() {}
-
-    public Lesson(Course course, String topic, int minutes) {
-        schedule(course, topic, minutes);
+    public Lesson(Course course, LessonSchedule schedule) {
+        reschedule(course, schedule);
     }
 
-    public void schedule(Course course, String topic, int minutes) {
-        String newTopic = Fields.text(topic, "Тема", 160, true);
-        if (course == null) {
-            throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Выберите курс.");
-        }
-        if (minutes < 1 || minutes > 1440) {
-            throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Длительность занятия — от 1 до 1440 минут.");
-        }
-        this.topic = newTopic;
-        this.minutes = minutes;
+    public void reschedule(Course course, LessonSchedule schedule) {
+        this.topic = schedule.getTopic();
+        this.minutes = schedule.getMinutes();
         this.course = course;
     }
-
-    public Long getId() { return id; }
-    public Course getCourse() { return course; }
-    public String getTopic() { return topic; }
-    public int getMinutes() { return minutes; }
 }

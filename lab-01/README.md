@@ -18,17 +18,18 @@
 
 Один курс может содержать несколько занятий. Каждое занятие принадлежит одному курсу и может быть перенесено в другой. Курс с занятиями можно удалить после их переноса или удаления.
 
-- `model` — JPA-сущности `Course` и `Lesson`. Состояние закрыто, методы `revise` и `schedule` проверяют новые значения до изменения полей.
-- `service` — сессионный EJB `Catalog`. Он выполняет операции в транзакциях JTA. Внешний ключ в PostgreSQL защищает связь, а блокировка курса согласует удаление с добавлением или переносом занятий.
+- `model` — JPA-сущности `Course` и `Lesson` с закрытыми полями и геттерами Lombok. Параметры переноса или создания занятия собраны в неизменяемом `LessonSchedule`.
+- `service` — сессионный EJB `CatalogService` и `CatalogValidator`. Валидатор проверяет входные данные и нормализует строки через Apache Commons Lang. GlassFish открывает транзакцию EJB автоматически.
+- `repository` — `CatalogRepository` с JPA-запросами, сохранением сущностей и блокировками. Внешний ключ в PostgreSQL защищает связь, а блокировка курса согласует удаление с добавлением или переносом занятий.
 - `web` и `WEB-INF` — Servlet и JSP. Формы поддерживают полный CRUD. Сервер проверяет ввод и возвращает 400 для некорректных значений, 404 для отсутствующей записи и 409 при попытке удалить курс с занятиями.
 
 ## Сборка и развёртывание
 
-Проверенная среда — JDK 21, Maven, Eclipse GlassFish Web Profile 7.0.25, PostgreSQL 17.12 и драйвер pgJDBC 42.7.8. Команды ниже выполняются из корня репозитория в PowerShell. `psql` должен видеть отдельную пустую БД `catalog`, доступную пользователю `catalog`. В примере PostgreSQL слушает локальный порт 15432.
+Проверенная среда — JDK 21, Gradle Wrapper, Eclipse GlassFish Web Profile 7.0.25, PostgreSQL 17.12 и драйвер pgJDBC 42.7.8. Команды ниже выполняются из корня репозитория в PowerShell. `psql` должен видеть отдельную пустую БД `catalog`, доступную пользователю `catalog`. В примере PostgreSQL слушает локальный порт 15432.
 
 ```powershell
 psql -W -h 127.0.0.1 -p 15432 -U catalog -d catalog -v ON_ERROR_STOP=1 -f lab-01/sql/catalog.sql
-mvn -f lab-01/pom.xml clean verify
+.\lab-01\gradlew.bat -p lab-01 clean build
 ```
 
 На Windows используйте ASCII-путь для распаковки GlassFish, например `C:\tools\glassfish7`. При пути с кириллицей консоль проверенной версии не смогла загрузить XML-схему. Скопируйте JAR драйвера в `glassfish/domains/domain1/lib` при остановленном домене. Добавьте каталог `glassfish/bin` в PATH и запустите домен. Заполните локальный файл паролей строкой `AS_ADMIN_ALIASPASSWORD=<пароль пользователя catalog>` и укажите путь к нему в `$aliasFile`. После создания псевдонима удалите временный файл.
@@ -40,19 +41,22 @@ asadmin create-jdbc-connection-pool --restype javax.sql.DataSource --datasourcec
 asadmin set 'resources.jdbc-connection-pool.CatalogPool.property.password=${ALIAS=aks-db}'
 asadmin create-jdbc-resource --connectionpoolid CatalogPool jdbc/Catalog
 asadmin ping-connection-pool CatalogPool
-asadmin deploy --contextroot catalog lab-01/target/catalog.war
+asadmin deploy --contextroot catalog lab-01/build/libs/catalog.war
 asadmin list-applications
 ```
 
 Каталог открывается по адресу [127.0.0.1:8080/catalog](http://127.0.0.1:8080/catalog/). В консоли [127.0.0.1:4848](http://127.0.0.1:4848/) приложение видно в **Applications**, а подключение к БД — в **Resources → JDBC**.
 
-## Проверка в браузере
+## Тесты и покрытие
 
-Из корня репозитория, при запущенном каталоге и установленном Microsoft Edge:
+На Windows используйте путь к репозиторию без кириллицы. Если путь к репозиторию уже содержит кириллицу и Gradle не находит скомпилированные классы тестов, можно зайти в тот же репозиторий через свободную букву диска, назначенную командой `subst T: (Get-Location).Path`, и выполнить команды из `T:\`.
+
+`clean build` запускает модульные тесты Kotlin/JUnit и создаёт отчёт JaCoCo в `lab-01/build/reports/jacoco/test/html/index.html`. Для браузерного теста нужен запущенный каталог и Microsoft Edge. Из корня репозитория выполните команду ниже.
 
 ```powershell
-python -m pip install playwright
-python lab-01/tests/browser_crud.py
+.\lab-01\gradlew.bat -p lab-01 test "-PcatalogUrl=http://127.0.0.1:8080/catalog/"
 ```
 
-Тест создаёт и удаляет собственные записи, проверяет перенос занятия, сохранение изменений после загрузки страницы, обработку ошибок и защиту POST. На отдельной пустой БД SQL-скрипт создаёт два курса и два связанных занятия. Ссылку на курс и диапазон длительности дополнительно проверяют ограничения БД.
+JaCoCo измеряет код в JVM тестов. Браузерный тест обращается к отдельному процессу GlassFish, поэтому серверные вызовы в этот отчёт не входят.
+
+Браузерный тест создаёт и удаляет собственные записи, проверяет перенос занятия, сохранение изменений после загрузки страницы, обработку ошибок и защиту POST. На отдельной пустой БД SQL-скрипт создаёт два курса и два связанных занятия. Ссылку на курс и диапазон длительности дополнительно проверяют ограничения БД.

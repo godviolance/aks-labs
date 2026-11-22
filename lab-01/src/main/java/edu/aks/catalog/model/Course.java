@@ -1,7 +1,12 @@
 package edu.aks.catalog.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "course")
 public class Course {
@@ -15,20 +20,12 @@ public class Course {
     @Column(nullable = false, length = 1000)
     private String description;
 
-    protected Course() {}
-
     public Course(String title, String description) {
         revise(title, description);
     }
 
     public void revise(String title, String description) {
-        String newTitle = Fields.text(title, "Название", 120, true);
-        String newDescription = Fields.text(description, "Описание", 1000, false);
-        this.title = newTitle;
-        this.description = newDescription;
+        this.title = title;
+        this.description = description;
     }
-
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
 }

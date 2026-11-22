@@ -1,7 +1,8 @@
 package edu.aks.catalog.web;
 
 import edu.aks.catalog.model.CatalogProblem;
-import edu.aks.catalog.service.Catalog;
+import edu.aks.catalog.model.LessonSchedule;
+import edu.aks.catalog.service.CatalogService;
 import java.util.UUID;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
@@ -12,7 +13,7 @@ import java.io.IOException;
 @WebServlet("")
 public class CatalogServlet extends HttpServlet {
     @EJB
-    private Catalog catalog;
+    private CatalogService catalog;
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res)
@@ -30,8 +31,8 @@ public class CatalogServlet extends HttpServlet {
                 case "course-create" -> catalog.addCourse(req.getParameter("title"), req.getParameter("description"));
                 case "course-update" -> catalog.updateCourse(id(req, "id"), req.getParameter("title"), req.getParameter("description"));
                 case "course-delete" -> catalog.deleteCourse(id(req, "id"));
-                case "lesson-create" -> catalog.addLesson(id(req, "courseId"), req.getParameter("topic"), minutes(req));
-                case "lesson-update" -> catalog.updateLesson(id(req, "id"), id(req, "courseId"), req.getParameter("topic"), minutes(req));
+                case "lesson-create" -> catalog.addLesson(schedule(req));
+                case "lesson-update" -> catalog.updateLesson(id(req, "id"), schedule(req));
                 case "lesson-delete" -> catalog.deleteLesson(id(req, "id"));
                 default -> throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Неизвестное действие.");
             }
@@ -56,6 +57,10 @@ public class CatalogServlet extends HttpServlet {
             // Report absent and malformed identifiers uniformly.
         }
         throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Некорректный идентификатор.");
+    }
+
+    private static LessonSchedule schedule(HttpServletRequest req) {
+        return new LessonSchedule(id(req, "courseId"), req.getParameter("topic"), minutes(req));
     }
 
     private static int minutes(HttpServletRequest req) {
