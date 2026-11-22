@@ -13,3 +13,46 @@
 5. Реализовать доступ к данным и их изменение через сессионные EJB.
 6. Создать слой представления на выбранной технологии. Приложение должно позволять просматривать, добавлять, редактировать и удалять данные.
 7. Проверить совместную работу трёх слоёв и БД. Для развёртывания использовать консоль администратора или конфигурационные файлы сервера приложений.
+
+## Каталог курсов и занятий
+
+Один курс может содержать несколько занятий. Каждое занятие принадлежит одному курсу и может быть перенесено в другой. Курс с занятиями можно удалить после их переноса или удаления.
+
+- `model` — JPA-сущности `Course` и `Lesson`. Состояние закрыто, методы `revise` и `schedule` проверяют новые значения до изменения полей.
+- `service` — сессионный EJB `Catalog`. Он выполняет операции в транзакциях JTA. Внешний ключ в PostgreSQL защищает связь, а блокировка курса согласует удаление с добавлением или переносом занятий.
+- `web` и `WEB-INF` — Servlet и JSP. Формы поддерживают полный CRUD. Сервер проверяет ввод и возвращает 400 для некорректных значений, 404 для отсутствующей записи и 409 при попытке удалить курс с занятиями.
+
+## Сборка и развёртывание
+
+Проверенная среда — JDK 21, Maven, Eclipse GlassFish Web Profile 7.0.25, PostgreSQL 17.12 и драйвер pgJDBC 42.7.8. Команды ниже выполняются из корня репозитория в PowerShell. `psql` должен видеть отдельную пустую БД `catalog`, доступную пользователю `catalog`. В примере PostgreSQL слушает локальный порт 15432.
+
+```powershell
+psql -W -h 127.0.0.1 -p 15432 -U catalog -d catalog -v ON_ERROR_STOP=1 -f lab-01/sql/catalog.sql
+mvn -f lab-01/pom.xml clean verify
+```
+
+На Windows используйте ASCII-путь для распаковки GlassFish, например `C:\tools\glassfish7`. При пути с кириллицей консоль проверенной версии не смогла загрузить XML-схему. Скопируйте JAR драйвера в `glassfish/domains/domain1/lib` при остановленном домене. Добавьте каталог `glassfish/bin` в PATH и запустите домен. Заполните локальный файл паролей строкой `AS_ADMIN_ALIASPASSWORD=<пароль пользователя catalog>` и укажите путь к нему в `$aliasFile`. После создания псевдонима удалите временный файл.
+
+```powershell
+asadmin start-domain domain1
+asadmin --passwordfile $aliasFile create-password-alias aks-db
+asadmin create-jdbc-connection-pool --restype javax.sql.DataSource --datasourceclassname org.postgresql.ds.PGSimpleDataSource --property 'serverName=127.0.0.1:portNumber=15432:databaseName=catalog:user=catalog' CatalogPool
+asadmin set 'resources.jdbc-connection-pool.CatalogPool.property.password=${ALIAS=aks-db}'
+asadmin create-jdbc-resource --connectionpoolid CatalogPool jdbc/Catalog
+asadmin ping-connection-pool CatalogPool
+asadmin deploy --contextroot catalog lab-01/target/catalog.war
+asadmin list-applications
+```
+
+Каталог открывается по адресу [127.0.0.1:8080/catalog](http://127.0.0.1:8080/catalog/). В консоли [127.0.0.1:4848](http://127.0.0.1:4848/) приложение видно в **Applications**, а подключение к БД — в **Resources → JDBC**.
+
+## Проверка в браузере
+
+Из корня репозитория, при запущенном каталоге и установленном Microsoft Edge:
+
+```powershell
+python -m pip install playwright
+python lab-01/tests/browser_crud.py
+```
+
+Тест создаёт и удаляет собственные записи, проверяет перенос занятия, сохранение изменений после загрузки страницы, обработку ошибок и защиту POST. На отдельной пустой БД SQL-скрипт создаёт два курса и два связанных занятия. Ссылку на курс и диапазон длительности дополнительно проверяют ограничения БД.
