@@ -21,6 +21,23 @@ public class Lesson {
 
     protected Lesson() {}
 
+    public Lesson(Course course, String topic, int minutes) {
+        schedule(course, topic, minutes);
+    }
+
+    public void schedule(Course course, String topic, int minutes) {
+        String newTopic = Fields.text(topic, "Тема", 160, true);
+        if (course == null) {
+            throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Выберите курс.");
+        }
+        if (minutes < 1 || minutes > 1440) {
+            throw new CatalogProblem(CatalogProblem.Kind.INVALID, "Длительность занятия — от 1 до 1440 минут.");
+        }
+        this.topic = newTopic;
+        this.minutes = minutes;
+        this.course = course;
+    }
+
     public Long getId() { return id; }
     public Course getCourse() { return course; }
     public String getTopic() { return topic; }

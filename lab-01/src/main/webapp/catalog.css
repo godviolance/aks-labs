@@ -1,0 +1,24 @@
+* { box-sizing: border-box; }
+html { color-scheme: light; }
+body { margin: 0; color: #1e302c; background: #f5f4ed; font: 16px/1.5 "Segoe UI", sans-serif; }
+main { max-width: 1080px; margin: auto; padding: 2.5rem clamp(1rem, 4vw, 3.5rem); }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-bottom: 2px solid #315a49; }
+h1, h2, h3 { margin: 0; overflow-wrap: anywhere; }
+h1 { font: 500 clamp(2.4rem, 6vw, 4.5rem)/1.2 Georgia, serif; margin-bottom: 1rem; }
+nav { display: flex; gap: 1.25rem; }
+a, summary { color: #235740; }
+.columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+section { min-width: 0; }
+h2 { margin: 1.75rem 0 .75rem; }
+small { font-size: .85rem; font-weight: 400; }
+article { border: 1px solid #d4d9cd; padding: 1rem 1.2rem; background: #fffefa; margin-top: .8rem; border-radius: .4rem; }
+article p { margin: .25rem 0 .85rem; color: #506051; overflow-wrap: anywhere; white-space: pre-line; }
+summary { cursor: pointer; width: fit-content; }
+.add > summary { font-weight: 600; }
+.editor { display: grid; gap: .7rem; margin: .8rem 0; }
+label, .field { display: grid; gap: .2rem; }
+input, select, textarea { width: 100%; padding: .5rem; border: 1px solid #89998a; border-radius: .25rem; background: white; font: inherit; }
+button { width: fit-content; border: 0; border-radius: .25rem; padding: .5rem 1rem; background: #245940; color: white; font: inherit; cursor: pointer; }
+.remove button { background: transparent; color: #834334; padding: .35rem 0 0; font-size: .9rem; }
+[role="alert"] { padding: .75rem 1rem; background: #ffeded; border-left: 3px solid #a63e35; }
+@media (max-width: 680px) { .columns { grid-template-columns: 1fr; gap: 0; } }

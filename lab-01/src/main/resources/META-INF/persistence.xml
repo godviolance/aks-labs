@@ -4,6 +4,7 @@
     <jta-data-source>jdbc/Catalog</jta-data-source>
     <class>edu.aks.catalog.model.Course</class>
     <class>edu.aks.catalog.model.Lesson</class>
+    <shared-cache-mode>NONE</shared-cache-mode>
     <properties>
       <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
     </properties>
