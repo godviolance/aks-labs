@@ -65,8 +65,9 @@ class CatalogBrowserTest {
         fun post(status: Int, vararg fields: Pair<String, String>) {
             val data = FormData.create()
             fields.forEach { (key, value) -> data.set(key, value) }
-            page.request().post(url, RequestOptions.create().setForm(data)).also {
+            page.request().post(url, RequestOptions.create().setMaxRedirects(0).setForm(data)).also {
                 assertEquals(status, it.status())
+                if (status == 303) assertEquals(page.url().let { java.net.URI(it).path }, it.headers()["location"])
                 it.dispose()
             }
         }
@@ -78,6 +79,12 @@ class CatalogBrowserTest {
         updateLesson(400, "forty")
         updateLesson(404, "15", Long.MAX_VALUE.toString())
         updateLesson(400, "15", id = "0")
+        updateLesson(404, "15", id = Long.MAX_VALUE.toString())
+        post(400, "token" to token, "action" to "unknown")
+        post(403, "token" to "wrong", "action" to "course-delete", "id" to courseId)
+        post(409, "token" to token, "action" to "course-delete", "id" to courseId)
+        post(303, "token" to token, "action" to "course-update", "id" to courseId,
+            "title" to renamed, "description" to "Тестовое описание")
         post(403, "action" to "course-delete", "id" to courseId)
         post(400, "token" to token, "action" to "course-update", "id" to courseId, "title" to "  ")
         delete(card(renamed), "Удалить курс")
