@@ -1,6 +1,7 @@
-package edu.aks.rest.api;
+package edu.aks.rest.service;
 
 import edu.aks.catalog.model.CatalogProblem;
+import lombok.RequiredArgsConstructor;
 import edu.aks.catalog.model.CatalogProblemKind;
 import edu.aks.catalog.model.Course;
 import edu.aks.catalog.model.Lesson;
@@ -10,17 +11,13 @@ import edu.aks.catalog.service.CatalogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static edu.aks.rest.api.CatalogDocuments.*;
+import static edu.aks.rest.dto.CatalogDocuments.*;
 
 @Service
+@RequiredArgsConstructor
 public class CatalogApiService {
     private final CatalogService catalog;
     private final CatalogRepository repository;
-
-    public CatalogApiService(CatalogService catalog, CatalogRepository repository) {
-        this.catalog = catalog;
-        this.repository = repository;
-    }
 
     public CourseList listCourses() {
         return new CourseList(catalog.listCourses().stream().map(this::buildCourseDocument).toList());

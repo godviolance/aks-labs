@@ -1,6 +1,7 @@
-package edu.aks.rest.api;
+package edu.aks.rest.controller;
 
 import edu.aks.catalog.model.CatalogProblem;
+import edu.aks.rest.dto.CatalogDocuments;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

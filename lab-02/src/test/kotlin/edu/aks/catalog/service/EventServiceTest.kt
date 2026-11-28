@@ -1,14 +1,21 @@
-package edu.aks.catalog.web
+package edu.aks.catalog.service
+
+import edu.aks.catalog.stubInterface
+import edu.aks.catalog.repository.CatalogRepository
+import jakarta.persistence.EntityManager
 
 import edu.aks.catalog.model.CatalogProblem
 import edu.aks.catalog.model.LessonSchedule
-import edu.aks.catalog.service.CatalogService
+import edu.aks.catalog.model.CatalogEvent
+import edu.aks.catalog.dto.CatalogEventInput
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class EventServiceTest {
-    private class RecordingCatalog : CatalogService() {
+    private class RecordingCatalog : CatalogService(
+        CatalogRepository(stubInterface<EntityManager> { name, _ -> error(name) }), CatalogValidator(), { }
+    ) {
         val calls = mutableListOf<List<Any>>()
         override fun addCourse(title: String, description: String): Long {
             calls += listOf("addCourse", title, description)

@@ -14,6 +14,10 @@ java { toolchain.languageVersion.set(JavaLanguageVersion.of(25)) }
 tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
 kotlin { compilerOptions.jvmTarget.set(JvmTarget.JVM_25) }
 
+configurations.configureEach {
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+}
+
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:4.0.10"))
     implementation(platform("org.apache.activemq:artemis-bom:2.44.0"))
@@ -25,7 +29,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("tools.jackson.core:jackson-databind")
+    compileOnly("org.projectlombok:lombok:1.18.48")
+    annotationProcessor("org.projectlombok:lombok:1.18.48")
     runtimeOnly("org.apache.activemq:artemis-jakarta-server")
+    runtimeOnly("org.slf4j:slf4j-simple")
 
     testImplementation(kotlin("stdlib"))
     testImplementation("org.junit.jupiter:junit-jupiter")

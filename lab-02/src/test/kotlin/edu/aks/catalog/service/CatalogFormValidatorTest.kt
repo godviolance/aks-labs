@@ -1,4 +1,4 @@
-package edu.aks.catalog.web
+package edu.aks.catalog.service
 
 import edu.aks.catalog.model.CatalogProblem
 import org.junit.jupiter.api.Assertions.*

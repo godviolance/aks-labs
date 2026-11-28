@@ -1,4 +1,4 @@
-package edu.aks.messaging
+package edu.aks.messaging.service
 
 import edu.aks.catalog.model.CatalogChange
 import edu.aks.catalog.model.ChangeOperation

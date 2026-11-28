@@ -10,7 +10,7 @@ import edu.aks.catalog.model.LessonSchedule;
 import edu.aks.catalog.repository.CatalogRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import java.time.Instant;
 import java.util.List;
@@ -21,22 +21,18 @@ import static edu.aks.catalog.model.CatalogProblemKind.CONFLICT;
 import static edu.aks.catalog.model.CatalogProblemKind.MISSING;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class CatalogService {
-    @Autowired
-    private CatalogRepository repository;
+    private final CatalogRepository repository;
 
-    @Autowired
-    private CatalogValidator validator;
+    private final CatalogValidator validator;
 
-    @Autowired
-    private ApplicationEventPublisher events;
+    private final ApplicationEventPublisher events;
 
-    @Transactional(readOnly = true)
     public List<Course> listCourses() { return repository.listCourses(); }
-    @Transactional(readOnly = true)
     public List<Lesson> listLessons() { return repository.listLessons(); }
 
+    @Transactional
     public long addCourse(String title, String description) {
         Course course = new Course(validator.validateCourseTitle(title), validator.validateCourseDescription(description));
         repository.insertCourse(course);
@@ -44,12 +40,14 @@ public class CatalogService {
         return course.getId();
     }
 
+    @Transactional
     public void updateCourse(long id, String title, String description) {
         Course course = lockCourseOrThrow(id);
         course.revise(validator.validateCourseTitle(title), validator.validateCourseDescription(description));
         publishCourseChange(ChangeOperation.UPDATE, course);
     }
 
+    @Transactional
     public void deleteCourse(long id) {
         Course course = lockCourseOrThrow(id);
         if (repository.existsLessonForCourse(id)) {
@@ -59,6 +57,7 @@ public class CatalogService {
         publishCourseChange(ChangeOperation.DELETE, course);
     }
 
+    @Transactional
     public long addLesson(LessonSchedule input) {
         LessonSchedule schedule = validator.validateLessonSchedule(input);
         Lesson lesson = new Lesson(lockCourseOrThrow(schedule.courseId()), schedule);
@@ -67,6 +66,7 @@ public class CatalogService {
         return lesson.getId();
     }
 
+    @Transactional
     public void updateLesson(long id, LessonSchedule input) {
         LessonSchedule schedule = validator.validateLessonSchedule(input);
         Course course = lockCourseOrThrow(schedule.courseId());
@@ -75,6 +75,7 @@ public class CatalogService {
         publishLessonChange(ChangeOperation.UPDATE, lesson);
     }
 
+    @Transactional
     public void deleteLesson(long id) {
         Lesson lesson = lockLessonOrThrow(id);
         repository.deleteLesson(lesson);

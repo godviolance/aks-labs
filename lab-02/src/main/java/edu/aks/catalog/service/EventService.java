@@ -1,18 +1,16 @@
-package edu.aks.catalog.web;
+package edu.aks.catalog.service;
 
 import edu.aks.catalog.model.LessonSchedule;
-import edu.aks.catalog.service.CatalogService;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import edu.aks.catalog.model.CatalogEvent;
+import edu.aks.catalog.dto.CatalogEventInput;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class EventService {
     private final CatalogService catalog;
     private final CatalogFormValidator validator;
-
-    public EventService(CatalogService catalog, CatalogFormValidator validator) {
-        this.catalog = catalog;
-        this.validator = validator;
-    }
 
     public void handleEvent(CatalogEvent event, CatalogEventInput input) {
         switch (event) {

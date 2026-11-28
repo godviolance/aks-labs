@@ -1,31 +1,27 @@
-package edu.aks.messaging;
+package edu.aks.messaging.service;
 
 import edu.aks.catalog.model.CatalogChange;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class CatalogOutbox {
-    static final String AUDIT_QUEUE = "catalog.audit";
-    static final String NOTIFY_QUEUE = "catalog.notify";
+    public static final String AUDIT_QUEUE = "catalog.audit";
+    public static final String NOTIFY_QUEUE = "catalog.notify";
 
     private final JdbcTemplate db;
     private final JmsTemplate jms;
     private final CatalogMessageCodec codec;
-
-    public CatalogOutbox(JdbcTemplate db, JmsTemplate jms, CatalogMessageCodec codec) {
-        this.db = db;
-        this.jms = jms;
-        this.codec = codec;
-    }
 
     @EventListener
     @Transactional(propagation = Propagation.MANDATORY)

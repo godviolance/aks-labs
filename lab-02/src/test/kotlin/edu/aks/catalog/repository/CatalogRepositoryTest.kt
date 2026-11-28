@@ -1,6 +1,5 @@
 package edu.aks.catalog.repository
 
-import edu.aks.catalog.injectTestField
 import edu.aks.catalog.model.Course
 import edu.aks.catalog.model.Lesson
 import edu.aks.catalog.stubInterface
@@ -18,8 +17,7 @@ class CatalogRepositoryTest {
             calls.add(args)
             if (args.first() == Course::class.java) course else null
         }
-        val repository = CatalogRepository()
-        injectTestField(repository, "em", em)
+        val repository = CatalogRepository(em)
         assertSame(course, repository.findCourseForUpdate(12).orElseThrow())
         assertTrue(repository.findLessonForUpdate(13).isEmpty)
         assertEquals(listOf(

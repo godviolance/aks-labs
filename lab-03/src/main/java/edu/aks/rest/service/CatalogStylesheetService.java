@@ -1,6 +1,6 @@
-package edu.aks.rest.api;
+package edu.aks.rest.service;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 import tools.jackson.dataformat.xml.XmlMapper;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Templates;
@@ -12,20 +12,17 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-@RestController
-@RequestMapping(value = "/api", params = "format=html", produces = "text/html;charset=UTF-8")
-public class CatalogHtmlController {
-    private final CatalogApiService service;
+@Service
+public class CatalogStylesheetService {
     private final XmlMapper mapper = XmlMapper.builder().build();
     private final Templates stylesheet;
 
-    public CatalogHtmlController(CatalogApiService service) throws TransformerException, IOException {
-        this.service = service;
+    public CatalogStylesheetService() throws TransformerException, IOException {
         TransformerFactory factory = TransformerFactory.newDefaultInstance();
         factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-        try (var source = CatalogHtmlController.class.getResourceAsStream("/static/catalog.xsl")) {
+        try (var source = CatalogStylesheetService.class.getResourceAsStream("/static/catalog.xsl")) {
             if (source == null) {
                 throw new IOException("Catalog stylesheet not found");
             }
@@ -33,28 +30,7 @@ public class CatalogHtmlController {
         }
     }
 
-    @GetMapping("/courses")
-    public String showCourses() throws TransformerException {
-        return renderHtml(service.listCourses());
-    }
-
-    @GetMapping("/courses/{id}")
-    public String showCourse(@PathVariable("id") long id) throws TransformerException {
-        return renderHtml(service.readCourse(id));
-    }
-
-    @GetMapping("/lessons")
-    public String showLessons(@RequestParam(name = "courseId", required = false) Long courseId)
-            throws TransformerException {
-        return renderHtml(service.listLessons(courseId));
-    }
-
-    @GetMapping("/lessons/{id}")
-    public String showLesson(@PathVariable("id") long id) throws TransformerException {
-        return renderHtml(service.readLesson(id));
-    }
-
-    private String renderHtml(Object document) throws TransformerException {
+    public String renderHtml(Object document) throws TransformerException {
         var transformer = stylesheet.newTransformer();
         transformer.setParameter("format", "html");
         var html = new StringWriter();

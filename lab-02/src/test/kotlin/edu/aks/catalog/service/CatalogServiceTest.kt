@@ -1,6 +1,8 @@
 package edu.aks.catalog.service
 
 import edu.aks.catalog.injectTestField
+import edu.aks.catalog.stubInterface
+import jakarta.persistence.EntityManager
 import edu.aks.catalog.model.*
 import edu.aks.catalog.repository.CatalogRepository
 import org.junit.jupiter.api.Assertions.*
@@ -15,10 +17,8 @@ class CatalogServiceTest {
     private var hasLessons = false
     private var deleted = false
     private var inserted: Lesson? = null
-    private val service = CatalogService().apply {
-        injectTestField(this, "validator", CatalogValidator())
-        injectTestField(this, "events", ApplicationEventPublisher { event -> events.add(event as CatalogChange) })
-        injectTestField(this, "repository", object : CatalogRepository() {
+    private val service = CatalogService(
+        object : CatalogRepository(stubInterface<EntityManager> { name, _ -> error(name) }) {
             override fun findCourseForUpdate(id: Long): Optional<Course> =
                 Optional.ofNullable(course.takeIf { id == 1L })
 
@@ -29,8 +29,8 @@ class CatalogServiceTest {
                 injectTestField(lesson, "id", 5L)
                 inserted = lesson
             }
-        })
-    }
+        }, CatalogValidator(), ApplicationEventPublisher { event -> events.add(event as CatalogChange) }
+    )
 
     @Test fun `reject missing courses and lessons separately`() {
         val courseProblem = assertThrows<CatalogProblem> { service.deleteCourse(2) }

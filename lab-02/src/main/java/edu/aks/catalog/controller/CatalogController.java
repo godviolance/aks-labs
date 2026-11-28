@@ -1,6 +1,11 @@
-package edu.aks.catalog.web;
+package edu.aks.catalog.controller;
 
 import edu.aks.catalog.model.CatalogProblem;
+import edu.aks.catalog.model.CatalogEvent;
+import edu.aks.catalog.dto.CatalogEventInput;
+import edu.aks.catalog.service.CatalogFormValidator;
+import edu.aks.catalog.service.EventService;
+import lombok.RequiredArgsConstructor;
 import edu.aks.catalog.service.CatalogService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,16 +21,11 @@ import java.util.Map;
 import java.util.UUID;
 
 @Controller
+@RequiredArgsConstructor
 public class CatalogController {
     private final CatalogService catalog;
     private final EventService events;
     private final CatalogFormValidator validator;
-
-    public CatalogController(CatalogService catalog, EventService events, CatalogFormValidator validator) {
-        this.catalog = catalog;
-        this.events = events;
-        this.validator = validator;
-    }
 
     @GetMapping("/")
     public ModelAndView showCatalog(HttpSession session, HttpServletResponse response) {

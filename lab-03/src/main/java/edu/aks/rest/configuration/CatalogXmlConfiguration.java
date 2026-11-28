@@ -1,4 +1,4 @@
-package edu.aks.rest.api;
+package edu.aks.rest.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

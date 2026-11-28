@@ -1,11 +1,13 @@
-package edu.aks.messaging;
+package edu.aks.messaging.listener;
 
 import edu.aks.catalog.model.CatalogChange;
+import lombok.RequiredArgsConstructor;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.aks.messaging.service.CatalogMessageCodec;
+import edu.aks.messaging.service.CatalogOutbox;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -13,15 +15,11 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class CatalogAuditListener {
-    private static final Logger LOG = LoggerFactory.getLogger(CatalogAuditListener.class);
     private final JdbcTemplate db;
     private final CatalogMessageCodec codec;
-
-    public CatalogAuditListener(JdbcTemplate db, CatalogMessageCodec codec) {
-        this.db = db;
-        this.codec = codec;
-    }
 
     @JmsListener(destination = CatalogOutbox.AUDIT_QUEUE)
     public void receiveChange(Message message) throws JMSException {
@@ -32,7 +30,7 @@ public class CatalogAuditListener {
                 return;
             }
         }
-        LOG.warn("Ignored invalid catalog audit message");
+        log.warn("Ignored invalid catalog audit message");
     }
 
     private void insertAuditEntry(CatalogChange change) {

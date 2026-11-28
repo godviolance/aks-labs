@@ -1,4 +1,4 @@
-package edu.aks.rest.api;
+package edu.aks.rest.dto;
 
 import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;

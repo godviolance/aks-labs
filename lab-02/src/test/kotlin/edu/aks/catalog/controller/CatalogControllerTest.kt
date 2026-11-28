@@ -1,8 +1,15 @@
-package edu.aks.catalog.web
+package edu.aks.catalog.controller
+
+import edu.aks.catalog.stubInterface
+import edu.aks.catalog.repository.CatalogRepository
+import edu.aks.catalog.service.CatalogValidator
+import jakarta.persistence.EntityManager
 
 import edu.aks.catalog.model.Course
 import edu.aks.catalog.model.Lesson
 import edu.aks.catalog.service.CatalogService
+import edu.aks.catalog.service.CatalogFormValidator
+import edu.aks.catalog.service.EventService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
@@ -11,7 +18,9 @@ import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
 
 class CatalogControllerTest {
-    private val catalog = object : CatalogService() {
+    private val catalog = object : CatalogService(
+        CatalogRepository(stubInterface<EntityManager> { name, _ -> error(name) }), CatalogValidator(), { }
+    ) {
         override fun listCourses() = emptyList<Course>()
         override fun listLessons() = emptyList<Lesson>()
     }

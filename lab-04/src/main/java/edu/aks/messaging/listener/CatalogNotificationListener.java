@@ -1,4 +1,4 @@
-package edu.aks.messaging;
+package edu.aks.messaging.listener;
 
 import edu.aks.catalog.model.CatalogChange;
 import edu.aks.catalog.model.ChangeOperation;
@@ -6,50 +6,37 @@ import edu.aks.catalog.model.EntityType;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import edu.aks.messaging.service.CatalogMessageCodec;
+import edu.aks.messaging.service.CatalogOutbox;
+import lombok.extern.slf4j.Slf4j;
+import edu.aks.messaging.configuration.CatalogMailProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Arrays;
 
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class CatalogNotificationListener {
-    private static final Logger LOG = LoggerFactory.getLogger(CatalogNotificationListener.class);
     private final JdbcTemplate db;
     private final MailSender mail;
     private final CatalogMessageCodec codec;
-    private final String sender;
-    private final String[] recipients;
-
-    public CatalogNotificationListener(JdbcTemplate db, MailSender mail, CatalogMessageCodec codec,
-                                       @Value("${catalog.mail.sender}") String sender,
-                                       @Value("${catalog.mail.recipients}") String recipients) {
-        this.db = db;
-        this.mail = mail;
-        this.codec = codec;
-        this.sender = sender;
-        this.recipients = Arrays.stream(recipients.split(",")).map(String::strip)
-                .filter(address -> !address.isEmpty()).toArray(String[]::new);
-        if (this.recipients.length == 0) {
-            throw new IllegalArgumentException("At least one catalog notification recipient is required");
-        }
-    }
+    private final CatalogMailProperties mailProperties;
 
     @JmsListener(destination = CatalogOutbox.NOTIFY_QUEUE)
     @Transactional
     public void receiveChange(Message message) throws JMSException {
         if (!(message instanceof TextMessage textMessage)) {
-            LOG.warn("Ignored non-text catalog notification");
+            log.warn("Ignored non-text catalog notification");
             return;
         }
         var decoded = codec.decodeChange(textMessage.getText());
         if (decoded.isEmpty()) {
-            LOG.warn("Ignored invalid catalog notification");
+            log.warn("Ignored invalid catalog notification");
             return;
         }
         CatalogChange change = decoded.orElseThrow();
@@ -68,8 +55,8 @@ public class CatalogNotificationListener {
         }
         String title = change.details().get("title");
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(sender);
-        message.setTo(recipients);
+        message.setFrom(mailProperties.sender());
+        message.setTo(mailProperties.recipients().toArray(String[]::new));
         message.setSubject("Удалён курс: " + title.replaceAll("[\\r\\n]+", " "));
         message.setText("Название: " + title + "\nID: " + change.entityId() + "\nСобытие: " + change.eventId());
         mail.send(message);

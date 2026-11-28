@@ -1,4 +1,4 @@
-package edu.aks.rest.api
+package edu.aks.rest.service
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

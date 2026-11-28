@@ -1,6 +1,7 @@
-package edu.aks.rest.api
+package edu.aks.rest.controller
 
 import edu.aks.catalog.model.CatalogProblem
+import edu.aks.rest.dto.CatalogDocuments
 import edu.aks.catalog.model.CatalogProblemKind
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

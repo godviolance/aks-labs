@@ -5,14 +5,14 @@ import edu.aks.catalog.model.Lesson;
 import org.springframework.stereotype.Repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class CatalogRepository {
-    @PersistenceContext
-    private EntityManager em;
+    private final EntityManager em;
 
     public List<Course> listCourses() {
         return em.createQuery("SELECT c FROM Course c ORDER BY c.title, c.id", Course.class)
@@ -39,7 +39,7 @@ public class CatalogRepository {
 
     public Optional<Lesson> findLesson(long id) {
         return em.createQuery("SELECT l FROM Lesson l JOIN FETCH l.course WHERE l.id = :id", Lesson.class)
-                .setParameter("id", id).getResultStream().findFirst();
+                .setParameter("id", id).getResultList().stream().findFirst();
     }
 
     public Optional<Course> findCourseForUpdate(long id) {

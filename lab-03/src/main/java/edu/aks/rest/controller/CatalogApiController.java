@@ -1,21 +1,20 @@
-package edu.aks.rest.api;
+package edu.aks.rest.controller;
 
 import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import edu.aks.rest.service.CatalogApiService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import static edu.aks.rest.api.CatalogDocuments.*;
+import static edu.aks.rest.dto.CatalogDocuments.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api", produces = {APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE})
 public class CatalogApiController {
     private final CatalogApiService service;
-
-    public CatalogApiController(CatalogApiService service) {
-        this.service = service;
-    }
 
     @GetMapping("/courses")
     public CourseList listCourses() { return service.listCourses(); }
