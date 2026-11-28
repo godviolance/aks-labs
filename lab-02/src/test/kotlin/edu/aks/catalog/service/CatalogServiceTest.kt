@@ -22,7 +22,10 @@ class CatalogServiceTest {
             override fun findLessonForUpdate(id: Long): Optional<Lesson> = Optional.empty()
             override fun existsLessonForCourse(id: Long) = hasLessons
             override fun deleteCourse(course: Course) { deleted = true }
-            override fun insertLesson(lesson: Lesson) { inserted = lesson }
+            override fun insertLesson(lesson: Lesson) {
+                injectTestField(lesson, "id", 5L)
+                inserted = lesson
+            }
         })
     }
 
@@ -46,7 +49,7 @@ class CatalogServiceTest {
     @Test fun `validate a schedule before persistence`() {
         assertThrows<CatalogProblem> { service.addLesson(LessonSchedule(1, "Topic", 0)) }
         assertNull(inserted)
-        service.addLesson(LessonSchedule(1, " Topic ", 45))
+        assertEquals(5L, service.addLesson(LessonSchedule(1, " Topic ", 45)))
         assertEquals("Topic", inserted!!.topic)
         assertSame(course, inserted!!.course)
     }

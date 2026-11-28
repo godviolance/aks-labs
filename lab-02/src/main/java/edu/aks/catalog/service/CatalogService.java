@@ -27,8 +27,10 @@ public class CatalogService {
     @Transactional(readOnly = true)
     public List<Lesson> listLessons() { return repository.listLessons(); }
 
-    public void addCourse(String title, String description) {
-        repository.insertCourse(new Course(validator.validateCourseTitle(title), validator.validateCourseDescription(description)));
+    public long addCourse(String title, String description) {
+        Course course = new Course(validator.validateCourseTitle(title), validator.validateCourseDescription(description));
+        repository.insertCourse(course);
+        return course.getId();
     }
 
     public void updateCourse(long id, String title, String description) {
@@ -43,9 +45,11 @@ public class CatalogService {
         repository.deleteCourse(course);
     }
 
-    public void addLesson(LessonSchedule input) {
+    public long addLesson(LessonSchedule input) {
         LessonSchedule schedule = validator.validateLessonSchedule(input);
-        repository.insertLesson(new Lesson(lockCourseOrThrow(schedule.courseId()), schedule));
+        Lesson lesson = new Lesson(lockCourseOrThrow(schedule.courseId()), schedule);
+        repository.insertLesson(lesson);
+        return lesson.getId();
     }
 
     public void updateLesson(long id, LessonSchedule input) {

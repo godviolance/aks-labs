@@ -26,6 +26,22 @@ public class CatalogRepository {
                 """, Lesson.class).getResultList();
     }
 
+    public List<Lesson> listLessonsForCourse(long courseId) {
+        return em.createQuery("""
+                SELECT l FROM Lesson l JOIN FETCH l.course
+                WHERE l.course.id = :id ORDER BY l.topic, l.id
+                """, Lesson.class).setParameter("id", courseId).getResultList();
+    }
+
+    public Optional<Course> findCourse(long id) {
+        return Optional.ofNullable(em.find(Course.class, id));
+    }
+
+    public Optional<Lesson> findLesson(long id) {
+        return em.createQuery("SELECT l FROM Lesson l JOIN FETCH l.course WHERE l.id = :id", Lesson.class)
+                .setParameter("id", id).getResultStream().findFirst();
+    }
+
     public Optional<Course> findCourseForUpdate(long id) {
         return Optional.ofNullable(em.find(Course.class, id, LockModeType.PESSIMISTIC_WRITE));
     }
