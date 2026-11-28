@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<form th:fragment="courseEditor(course)" class="editor" method="post" th:action="@{/}">
+  <input type="hidden" name="token" th:value="${session.token}">
+  <input type="hidden" name="action" th:value="${course == null ? 'course-create' : 'course-update'}">
+  <input type="hidden" name="id" th:value="${course?.id}">
+  <label>Название<input name="title" required maxlength="120" th:value="${course?.title}"></label>
+  <label>Описание<textarea name="description" maxlength="1000" rows="3" th:text="${course?.description}"></textarea></label>
+  <button>Сохранить</button>
+</form>
+<form th:fragment="lessonEditor(lesson, courses)" class="editor" method="post" th:action="@{/}">
+  <input type="hidden" name="token" th:value="${session.token}">
+  <input type="hidden" name="action" th:value="${lesson == null ? 'lesson-create' : 'lesson-update'}">
+  <input type="hidden" name="id" th:value="${lesson?.id}">
+  <label>Тема<input name="topic" required maxlength="160" th:value="${lesson?.topic}"></label>
+  <label for="course-id" th:for="|course-id-${lesson?.id ?: 'new'}|">Курс</label>
+  <select id="course-id" th:id="|course-id-${lesson?.id ?: 'new'}|" name="courseId" required>
+    <option value="">Выберите курс</option>
+    <option th:each="choice : ${courses}" th:value="${choice.id}"
+            th:selected="${lesson != null and choice.id == lesson.course.id}" th:text="${choice.title}"></option>
+  </select>
+  <label>Длительность, мин<input type="number" name="minutes" min="1" max="1440" required th:value="${lesson?.minutes}"></label>
+  <button>Сохранить</button>
+</form>
+<form th:fragment="remove(action, id, label)" class="remove" method="post" th:action="@{/}">
+  <input type="hidden" name="token" th:value="${session.token}">
+  <input type="hidden" name="action" th:value="${action}">
+  <input type="hidden" name="id" th:value="${id}">
+  <button th:text="${label}"></button>
+</form>
+</body>
+</html>

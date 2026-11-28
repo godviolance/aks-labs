@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Каталог курсов</title>
+  <link rel="stylesheet" th:href="@{/catalog.css}">
+</head>
+<body>
+<main>
+  <header><h1>Каталог курсов</h1><nav aria-label="Разделы"><a href="#courses">Курсы</a><a href="#lessons">Занятия</a></nav></header>
+  <p role="alert" th:if="${error != null}" th:text="${error}"></p>
+  <div class="columns">
+    <section id="courses">
+      <h2>Курсы <small th:text="${courses.size()}"></small></h2>
+      <details class="add"><summary>Добавить курс</summary><th:block th:replace="~{forms :: courseEditor(null)}"/></details>
+      <p th:if="${courses.isEmpty()}">Курсов пока нет.</p>
+      <article th:each="course : ${courses}">
+        <h3 th:text="${course.title}"></h3><p th:text="${course.description}"></p>
+        <details><summary>Изменить курс</summary><th:block th:replace="~{forms :: courseEditor(${course})}"/></details>
+        <th:block th:replace="~{forms :: remove('course-delete', ${course.id}, 'Удалить курс')}"/>
+      </article>
+    </section>
+    <section id="lessons">
+      <h2>Занятия <small th:text="${lessons.size()}"></small></h2>
+      <p th:if="${courses.isEmpty()}">Добавьте курс, чтобы запланировать первое занятие.</p>
+      <details class="add" th:unless="${courses.isEmpty()}">
+        <summary>Добавить занятие</summary><th:block th:replace="~{forms :: lessonEditor(null, ${courses})}"/>
+      </details>
+      <p th:if="${!courses.isEmpty() and lessons.isEmpty()}">Занятий пока нет.</p>
+      <article th:each="lesson : ${lessons}">
+        <h3 th:text="${lesson.topic}"></h3>
+        <p th:text="|${lesson.course.title} · ${lesson.minutes} мин|"></p>
+        <details><summary>Изменить занятие</summary><th:block th:replace="~{forms :: lessonEditor(${lesson}, ${courses})}"/></details>
+        <th:block th:replace="~{forms :: remove('lesson-delete', ${lesson.id}, 'Удалить занятие')}"/>
+      </article>
+    </section>
+  </div>
+</main>
+</body>
+</html>
