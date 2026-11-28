@@ -7,14 +7,17 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.Optional
+import org.springframework.context.ApplicationEventPublisher
 
 class CatalogServiceTest {
-    private val course = Course("Existing", "")
+    private val course = Course("Existing", "").apply { injectTestField(this, "id", 1L) }
+    private val events = mutableListOf<CatalogChange>()
     private var hasLessons = false
     private var deleted = false
     private var inserted: Lesson? = null
     private val service = CatalogService().apply {
         injectTestField(this, "validator", CatalogValidator())
+        injectTestField(this, "events", ApplicationEventPublisher { event -> events.add(event as CatalogChange) })
         injectTestField(this, "repository", object : CatalogRepository() {
             override fun findCourseForUpdate(id: Long): Optional<Course> =
                 Optional.ofNullable(course.takeIf { id == 1L })
@@ -41,9 +44,11 @@ class CatalogServiceTest {
         hasLessons = true
         assertEquals(CatalogProblemKind.CONFLICT, assertThrows<CatalogProblem> { service.deleteCourse(1) }.kind)
         assertFalse(deleted)
+        assertTrue(events.isEmpty())
         hasLessons = false
         service.deleteCourse(1)
         assertTrue(deleted)
+        assertEquals(ChangeOperation.DELETE, events.single().operation())
     }
 
     @Test fun `validate a schedule before persistence`() {
@@ -52,5 +57,7 @@ class CatalogServiceTest {
         assertEquals(5L, service.addLesson(LessonSchedule(1, " Topic ", 45)))
         assertEquals("Topic", inserted!!.topic)
         assertSame(course, inserted!!.course)
+        assertEquals(5L, events.single().entityId())
+        assertEquals("45", events.single().details()["minutes"])
     }
 }
